@@ -70,7 +70,7 @@ public class Entity : MonoBehaviour {
 
     public void ApplyDamage(Entity shooter, float damage) {
        // if (this == PlayerManager.PlayerEntity) return;
-       // hullIntegrity -= damage;
+        hullIntegrity -= damage;
         var evt = new Event_EntityDamaged(this, shooter, damage);
         EventManager.Instance.QueueEvent(evt);
         if(eventManager != null) {

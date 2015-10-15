@@ -32,7 +32,6 @@ public class SensorList : MonoBehaviour {
     protected void AddItemToList(Entity entity) {
         if (entity == PlayerManager.PlayerEntity) return;
         linkedEntityList.AddLast(entity);
-        entity.displayName = "Entity " + linkedEntityList.Count;
         contactText.text = "Contacts (" + linkedEntityList.Count + ")";
         if(sensorListItems.Count < sensorListMax) {
             sensorListEnd++;
