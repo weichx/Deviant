@@ -72,15 +72,15 @@ public class PlayerSensors : MonoBehaviour {
 
     protected void CycleTargetUp() {
         if (targetList.Count == 0) return;
-        Target(targetList[(targetIndex + 1) % targetList.Count]);
+        if (targetIndex == 0) targetIndex = targetList.Count;
+        if (targetIndex == -1) targetIndex = 1;
+
+        Target(targetList[targetIndex - 1]);
     }
 
     protected void CycleTargetDown() {
         if (targetList.Count == 0) return;
-        if (targetIndex == 0) targetIndex = targetList.Count;
-        if (targetIndex == -1) targetIndex = 1;
-        
-        Target(targetList[targetIndex - 1]);
+        Target(targetList[(targetIndex + 1) % targetList.Count]);
     }
 
     protected void OnEntityDespawned(Event_EntityDespawned evt) {

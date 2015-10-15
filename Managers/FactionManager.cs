@@ -91,4 +91,3 @@ public class FactionManager : MonoBehaviour {
         return GetFaction(id).HostileCount;
     }
 }
-

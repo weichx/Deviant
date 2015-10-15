@@ -6,10 +6,10 @@ public class SensorList : MonoBehaviour {
     //because we are only adding entities to the list in order of spawning,
     //this is kept in sync with the PlayerSensorSystem. If we do sorting of
     //some kind this will no longer be in sync.
+    public LinkedList<Entity> linkedEntityList;
 
     public GameObject listItem;
     protected List<SensorListItem> sensorListItems;
-    protected List<Entity> entities;
     protected int sensorListStart = 0;
     protected int sensorListEnd = 0;
     public int sensorListMax = 8;
@@ -19,8 +19,8 @@ public class SensorList : MonoBehaviour {
     public void Start() {
         sensorListItems = new List<SensorListItem>();
         contactText = transform.parent.Find("Contact Text").GetComponent<Text>();
-        entities = new List<Entity>();
         List<Entity> entityList = EntityManager.entities;
+        linkedEntityList = new LinkedList<Entity>();
         for (int i = 0; i < entityList.Count; i++) {
             AddItemToList(entityList[i]);
         }
@@ -31,8 +31,9 @@ public class SensorList : MonoBehaviour {
 
     protected void AddItemToList(Entity entity) {
         if (entity == PlayerManager.PlayerEntity) return;
-        entities.Add(entity);
-        contactText.text = "Contacts (" + entities.Count + ")";
+        linkedEntityList.AddLast(entity);
+        entity.displayName = "Entity " + linkedEntityList.Count;
+        contactText.text = "Contacts (" + linkedEntityList.Count + ")";
         if(sensorListItems.Count < sensorListMax) {
             sensorListEnd++;
             GameObject itemGameObject = Instantiate(listItem) as GameObject;
@@ -49,55 +50,69 @@ public class SensorList : MonoBehaviour {
         AddItemToList(evt.entity);
     }
 
-    //todo no longer correct
     public void OnEntityDespawned(Event_EntityDespawned evt) {
-        entities.Remove(evt.entity);
-        var entityItem = sensorListItems.Find((item) => {
-            return item.entity == evt.entity;
-        });
-
-        if(entityItem != null) {
-            ResetListItems(playerTarget);
-        }
-
-        contactText.text = "Contacts (" + entities.Count + ")";
+        linkedEntityList.Remove(evt.entity);
+        contactText.text = "Contacts (" + linkedEntityList.Count + ")";
     }
 
     public void OnPlayerTargetChanged(Event_PlayerTargetChanged evt) {
+        SensorListItem selected = GetItemForEntity(playerTarget);
+        if (selected) selected.Deselect();
+
         playerTarget = evt.newTarget;
-        for (int i = 0; i < sensorListItems.Count; i++) {
-            var listItem = sensorListItems[i];
-            if (listItem.entity == evt.oldTarget) {
-                listItem.Deselect();
-            }
+        //if we dont have a target there is nothing else to do
+        if(playerTarget == null) {
+            return;
         }
 
-        //is it visible on current screen
-        var selectedListItem = sensorListItems.Find((sensorItem) => {
-            return sensorItem.entity == evt.newTarget;
-        });          
+        SensorListItem newTargetItem = GetItemForEntity(playerTarget);
+        if(newTargetItem) {
+            //already displayed, we can just select it
+            newTargetItem.Select();
+            return;
+        }
 
-        int lastIndex = entities.IndexOf(evt.oldTarget);
-        int index = entities.IndexOf(evt.newTarget);
+        if(selected == null) { //target is not on the list displayed
+            sensorListItems[0].SetEntity(playerTarget, true);
+            var node = linkedEntityList.Find(playerTarget);
+            for(var i = 1; i < sensorListItems.Count; i++) {
+                node = node.NextOrFirst();
+                sensorListItems[i].SetEntity(node.Value);
+            }
+            return;
+        }
 
-        if (Util.Between(sensorListStart, index, sensorListStart + sensorListItems.Count)) {
-            selectedListItem.Select();
+        var currentTargetNode = linkedEntityList.Find(selected.entity);
+        if(playerTarget == currentTargetNode.NextOrFirst().Value) {
+            ShiftDown();
+        }
+        else if (playerTarget == currentTargetNode.PreviousOrLast().Value) {
+            ShiftUp();
         }
         else {
-            sensorListStart = index;
-            ResetListItems(evt.newTarget);
-        }       
+            Debug.LogError("Dont know how to handle targeting");
+        }
+
     }
 
-    protected void ResetListItems(Entity target) {
-        int start = sensorListStart;
-        for(int i = 0; i < sensorListItems.Count; i++) {
-            if (start >= entities.Count) {
-                start = 0;
-            }
-            if (entities.Count >= i) break;
-            sensorListItems[i].SetEntity(entities[start], entities[start] == target);
-            start++;
+    protected void ShiftUp() {
+        for (int i = sensorListItems.Count - 1; i > 0; i--) {
+            sensorListItems[i].SetEntity(sensorListItems[i - 1].entity);
         }
+        sensorListItems[0].SetEntity(playerTarget, true);
+    }
+
+    protected void ShiftDown() {
+        for(int i = 0; i < sensorListItems.Count - 1; i++) {
+            sensorListItems[i].SetEntity(sensorListItems[i + 1].entity);
+        }
+        sensorListItems[sensorListItems.Count - 1].SetEntity(playerTarget, true);
+    }
+
+    protected SensorListItem GetItemForEntity(Entity entity) {
+        if (entity == null) return null;
+        return sensorListItems.Find((item) => {
+            return item.entity == entity;
+        });
     }
 }

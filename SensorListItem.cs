@@ -15,7 +15,6 @@ public class SensorListItem : MonoBehaviour {
         entityNameText = transform.Find("Entity Name").GetComponent<Text>();
         entityDistanceText = transform.Find("Entity Distance").GetComponent<Text>();
         entityDistanceUnitText = transform.Find("Entity Distance Unit").GetComponent<Text>();
-        //on entity faction changed => change color
         if(entity != null) {
             entityNameText.color = FactionManager.GetColor(entity.factionId);
             entityNameText.text = entity.displayName;
