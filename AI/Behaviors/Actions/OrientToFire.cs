@@ -14,19 +14,18 @@ public class OrientToFire : Action {
 
     public override TaskStatus OnUpdate() {
         //right now its really hard to predict position for something turning a lot, this algorithm works great for 
-        //when target is straight but fails consistently when target is chaning direction. Try to find a way to take
+        //when target is straight but fails consistently when target is changing direction. Try to find a way to take
         //into account the velocity direction trend of the target and integrate that into this algorithm
+        if (pilot.target == null) return TaskStatus.Failure;
         Entity target = pilot.target.GetComponent<Entity>();
         Vector3 targetVelocity = target.GetComponent<Rigidbody>().velocity;
-        //		vm_vec_scale_add(predicted_enemy_pos, enemy_pos, &target_moving_direction, aip->time_enemy_in_range * dist/weapon_speed);
-
-        float t = Vector3.Distance(transform.position, target.transform.position) / 200f; //200 is weapon speed, todo: fix this
+        float t = Vector3.Distance(transform.position, target.transform.position) / pilot.ActiveWeaponSpeed;
         Vector3 predictedPosition = target.transform.position + targetVelocity * t;
 
         Vector3 toPredicted = (predictedPosition - pilot.transform.position).normalized;
 
         pilot.flightControls.SetThrottle(1f);
-        pilot.OrientWithAvoidance(toPredicted, 2 * pilot.engines.speed, 2 * pilot.engines.speed);
+        pilot.OrientWithAvoidance(toPredicted, 2f * pilot.engines.speed, 2f * pilot.engines.speed);
         return TaskStatus.Success;
     }
 }

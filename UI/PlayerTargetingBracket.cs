@@ -19,5 +19,8 @@ public class PlayerTargetingBracket : WorldPositionUI {
         if(evt.newTarget != null) {
             reticule.color = FactionManager.GetColor(evt.newTarget.factionId);
         }
+        else {
+            Untrack();
+        }
     }
 }

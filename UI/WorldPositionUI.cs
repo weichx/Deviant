@@ -4,6 +4,7 @@ using UnityEngine.Assertions;
 
 public class WorldPositionUI : MonoBehaviour {
     public Transform trackedTransform;
+    protected Vector3? trackedPosition;
     protected Graphic[] graphics;
     protected RectTransform rectTransform;
 
@@ -31,14 +32,24 @@ public class WorldPositionUI : MonoBehaviour {
     }
 
     public virtual void LateUpdate() {
-        if (trackedTransform == null) {
+        if (trackedTransform == null && trackedPosition == null) {
             for (int i = 0; i < graphics.Length; i++) {
                 graphics[i].enabled = false;
             }
             return;
         }
+
+        Vector3 position;
+
+        if(trackedTransform) {
+            position = trackedTransform.position;
+        }
+        else {
+            position = (Vector3)trackedPosition;
+        }
+
         Assert.IsNotNull(Camera.main, "Camera is null");
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(trackedTransform.position);
+        Vector3 screenPos = Camera.main.WorldToScreenPoint(position);
         bool visible = screenPos.z > 0.0f;
         for (int i = 0; i < graphics.Length; i++) {
             graphics[i].enabled = visible;
@@ -46,28 +57,37 @@ public class WorldPositionUI : MonoBehaviour {
         rectTransform.anchoredPosition = new Vector2(guiScale * screenPos.x, guiScale * screenPos.y);
     }
 
+    public void SetTrackedPosition(Vector3? position) {
+        trackedPosition = position;
+        trackedTransform = null;
+    }
+
     public void SetTrackedObject(GameObject target) {
         if(target != null && target.transform != trackedTransform) {
             trackedTransform = target.transform;
-            OnTrackedTargetChanged();
+            trackedPosition = null;
         }
     }
 
     public void SetTrackedObject(Transform target) {
         if (target != trackedTransform) {
             trackedTransform = target;
-            OnTrackedTargetChanged();
+            trackedPosition = null;
         }
     }
 
     public void SetTrackedObject(Entity entity) {
         if (entity != null && trackedTransform != entity.transform) {
             trackedTransform = entity.transform;
-            OnTrackedTargetChanged();
+            trackedPosition = null;
         }
     }
 
-    public virtual void OnTrackedTargetChanged() {
-
+    public void Untrack() {
+        trackedTransform = null;
+        trackedPosition = null;
+        for (int i = 0; i < graphics.Length; i++) {
+            graphics[i].enabled = false;
+        }
     }
 }

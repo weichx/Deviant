@@ -42,8 +42,18 @@ public static class EntityManager {
 
     public static void Add(Entity entity) {
         var entry = new EntityDatabaseEntry(entity);
+        int i = 1;
+        if(database.Get(entity.displayName) != null) {
+            string name = entity.displayName + " " + i.ToString();
+            while(database.Get(name) != null) {
+                name = entity.displayName + " " + i.ToString();
+                i++;
+            }
+            entity.displayName = name;
+        }
         Assert.IsNull(database.Get(entity.displayName), "EntityDatabase has already registered entity with the displayName: " + entity.displayName);
         database.Add(entity.displayName, entry);
+        FactionManager.AddEntity(entity);
         EventManager.Instance.QueueEvent(new Event_EntitySpawned(entity, TimeManager.Timestamp));
     }
 

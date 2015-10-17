@@ -50,13 +50,14 @@ public class EventManager : MonoBehaviour {
         };
 
         delegateLookup[del] = internalDelegate;
+        Type type = typeof(T);
 
         NonGenericEventDelegate tempDel;
-        if (delegates.TryGetValue(typeof(T), out tempDel)) {
-            delegates[typeof(T)] = tempDel += internalDelegate;
+        if (delegates.TryGetValue(type, out tempDel)) {
+            delegates[type] = tempDel += internalDelegate;
         }
         else {
-            delegates[typeof(T)] = internalDelegate;
+            delegates[type] = internalDelegate;
         }
 
         return internalDelegate;

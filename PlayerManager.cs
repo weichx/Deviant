@@ -14,6 +14,10 @@ public class PlayerManager {
         get { return player; }
     }
 
+    public static PlayerPilot PlayerPilot {
+        get { return player.pilot as PlayerPilot; }
+    }
+
     public static Transform PlayerTransform {
         get { return player.transform; }
     }

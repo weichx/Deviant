@@ -29,11 +29,11 @@ public class Run_Seperate : Action {
         //ok, find a point -- expanded into safe / unsafe later
         //approach point
         //reach point
-            //how much distance? not enough? repeat
-
+        //how much distance? not enough? repeat
+        if (pilot.target == null) return TaskStatus.Failure;
         Vector3 escapeDirection = (pilot.transform.position - pilot.target.position).normalized;
 
-        pilot.OrientWithAvoidance(escapeDirection, pilot.engines.speed, pilot.engines.speed);
+        pilot.OrientWithAvoidance(escapeDirection, pilot.engines.speed * 2f, pilot.engines.speed * 2f);
         pilot.flightControls.SetThrottle(1f);
         return TaskStatus.Running;
     }

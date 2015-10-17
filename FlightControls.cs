@@ -13,16 +13,10 @@ public class FlightControls {
     public float pitchModifer;
     public Vector3 destination; 
 
-    public FlightControls(Vector3 destination) {
-        this.destination = destination;
+    public FlightControls() {
+        this.destination = Vector3.zero;
         SetStickDamping(1, 1, 1);
-        throttle = 0f;
-        rollOverride = 0f;
-    }
-
-    public FlightControls(float yawModifier = 1f, float pitchModifer = 1f, float rollModifier = 1f) {
-        SetStickDamping(yawModifier, pitchModifer, rollModifier);
-        throttle = 0f;
+        SetStickInputs(0f, 0f, 0f, 0f);
         rollOverride = 0f;
     }
 

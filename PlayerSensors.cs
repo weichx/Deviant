@@ -19,11 +19,11 @@ public class PlayerSensors : MonoBehaviour {
 
         EventManager.Instance.AddListener<Event_EntitySpawned>(OnEntitySpawned);
         EventManager.Instance.AddListener<Event_EntityDespawned>(OnEntityDespawned);
-        
+
     }
 
     public void Update() {
-        DoTargeting();       
+        DoTargeting();
     }
 
     protected void DoTargeting() {
@@ -32,14 +32,24 @@ public class PlayerSensors : MonoBehaviour {
             return;
         }
 
-        if(Input.GetKeyDown(KeyCode.Y)) {
+        if (Input.GetKeyDown(KeyCode.Y)) {
             CycleTargetDown();
             return;
         }
 
         if (Input.GetButtonDown("JoystickButton1")) {
-            RaycastHit hit;
-            if (Physics.SphereCast(viewpoint.transform.position, 15f, viewpoint.transform.forward, out hit)) {
+            RaycastHit hit; //progressivly try to target entities in forward driection
+            if (Physics.Raycast(viewpoint.transform.position, viewpoint.transform.forward, out hit)) {
+                Entity entity = hit.transform.GetComponentInParent<Entity>();
+                Assert.IsNotNull(entity, "Tried to target " + hit.transform.name + " but it doesnt have an entity");
+                Target(entity);
+            }
+            else if (Physics.SphereCast(viewpoint.transform.position, 7.5f, viewpoint.transform.forward, out hit)) {
+                Entity entity = hit.transform.GetComponentInParent<Entity>();
+                Assert.IsNotNull(entity, "Tried to target " + hit.transform.name + " but it doesnt have an entity");
+                Target(entity);
+            }
+            else if (Physics.SphereCast(viewpoint.transform.position, 15f, viewpoint.transform.forward, out hit)) {
                 Entity entity = hit.transform.GetComponentInParent<Entity>();
                 Assert.IsNotNull(entity, "Tried to target " + hit.transform.name + " but it doesnt have an entity");
                 Target(entity);
@@ -84,7 +94,7 @@ public class PlayerSensors : MonoBehaviour {
     }
 
     protected void OnEntityDespawned(Event_EntityDespawned evt) {
-        if(evt.entity == target) {
+        if (evt.entity == target) {
             EventManager.Instance.TriggerEvent(new Event_PlayerTargetChanged(null, target));
             target = null;
         }

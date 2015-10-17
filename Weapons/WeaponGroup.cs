@@ -9,9 +9,11 @@ public class WeaponGroup : MonoBehaviour {
     private AbstractWeapon weapon;
     public WeaponFiringParameters firingParameters;
     private int currentFirepointIndex = 0;
+    private IWeapon weaponRef;
 
     public void Start() {
         spawner = WeaponSpawner.Get(weaponId);
+        weaponRef = spawner.referenceWeapon;
         Entity entity = GetComponentInParent<Entity>();
         firepoints = new List<Firepoint>();
         firingParameters = new WeaponFiringParameters(entity);
@@ -37,8 +39,16 @@ public class WeaponGroup : MonoBehaviour {
         return true;
     }
 
+    public IWeapon ReferenceWeapon {
+        get { return weaponRef; }
+    }
+
     public float Range {
-        get { return 0f; }
+        get { return weaponRef.Range; }
+    }
+
+    public float Speed {
+        get { return weaponRef.Speed; }
     }
 
     public float AspectFOV {
@@ -46,7 +56,7 @@ public class WeaponGroup : MonoBehaviour {
     }
 
     public bool CanFire {
-        get { return true; }
+        get { return spawner.CanFire(firingParameters); }
     }
 
     public bool IsLinked {

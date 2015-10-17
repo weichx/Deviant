@@ -12,7 +12,7 @@ public class ArriveAtLocation : Action {
 
     public override TaskStatus OnUpdate() {
         FlightControls flightControls = pilot.flightControls;
-        AIEngineSystem engines = pilot.engines;
+        EngineSystem engines = pilot.engines;
 
         float distanceSqr = (flightControls.destination - transform.position).sqrMagnitude;
         float entityRadius = pilot.entity.radius;

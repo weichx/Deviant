@@ -10,22 +10,22 @@ public class SensorListItem : MonoBehaviour {
     protected Image selectionImage;
     protected bool selected;
 
-	void Start () {
+    void Start() {
         selectionImage = GetComponent<Image>();
         entityNameText = transform.Find("Entity Name").GetComponent<Text>();
         entityDistanceText = transform.Find("Entity Distance").GetComponent<Text>();
         entityDistanceUnitText = transform.Find("Entity Distance Unit").GetComponent<Text>();
-        if(entity != null) {
+        if (entity != null) {
             entityNameText.color = FactionManager.GetColor(entity.factionId);
             entityNameText.text = entity.displayName;
             selectionImage.enabled = selected;
         }
     }
-	
-	void Update () {
+
+    void Update() {
         if (entity == null) return;
         float distance = Vector3.Distance(entity.transform.position, PlayerManager.PlayerViewpointTransform.position);
-        if(distance < 1000f) {
+        if (distance < 1000f) {
             entityDistanceUnitText.text = "M";
             entityDistanceText.text = ((int)distance).ToString();
         }
@@ -38,9 +38,11 @@ public class SensorListItem : MonoBehaviour {
     public void SetEntity(Entity entity, bool selected = false) {
         this.entity = entity;
         this.selected = selected;
-        if(entityDistanceText != null) {
+        if (entityDistanceText != null) {
             entityNameText.text = entity.displayName;
-            entityNameText.color = FactionManager.GetColor(entity.factionId);
+            Color color = FactionManager.GetColor(entity.factionId);
+            entityNameText.color = color;
+            entityDistanceText.color = color;
         }
         if (selectionImage != null) {
             selectionImage.enabled = selected;

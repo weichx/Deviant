@@ -12,7 +12,7 @@ public class FlyInFormation : Action {
     public override TaskStatus OnUpdate() {
         FormationNode node = pilot.FormationNode;
         FlightControls flightControls = pilot.flightControls;
-        AIEngineSystem engines = pilot.engines;
+        EngineSystem engines = pilot.engines;
         
         flightControls.destination = node.transform.position + (node.transform.forward * pilot.formation.LeaderSpeed);
 

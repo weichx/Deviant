@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 public class PlayerEngineSystem : EngineSystem {
+
     public float angularDrag = 3f;
 
     public override void Start() {
@@ -8,7 +9,7 @@ public class PlayerEngineSystem : EngineSystem {
         rigidbody.angularDrag = angularDrag;
     }
 
-    public void FixedUpdate() {
+    public override void FixedUpdate() {
         if (flightControls == null) return;
         Vector3 localAV = transform.InverseTransformDirection(rigidbody.angularVelocity);
         float turnRateRadians = turnRate * Mathf.Deg2Rad;

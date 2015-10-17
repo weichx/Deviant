@@ -168,7 +168,7 @@ public class Faction {
     }
 
     public List<Entity> GetHostiles() {
-        return  new List<Entity>(hostiles);
+        return new List<Entity>(hostiles);
     }
 
     public List<Entity> GetFriendlies() {

@@ -12,7 +12,7 @@ public class FlyTowards : Action {
 
     public override TaskStatus OnUpdate() {
         FlightControls flightControls = pilot.flightControls;
-        AIEngineSystem engines = pilot.engines;
+        EngineSystem engines = pilot.engines;
         float detectionRange = pilot.entity.radius + (engines.MaxSpeed * 2f);
         flightControls.destination = pilot.location.position;
         Vector3 goalDirection = (flightControls.destination - transform.position).normalized;

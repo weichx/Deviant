@@ -1,3 +1,7 @@
+
+ //Vector3 force = goalVelocity - rigidbody.velocity; this yields a really interesting corkscrew behavior, cool for evasion
+
+
  //todo it would be fun to have limited slide mode where velocity is totally unlock from ship rotation
         //this would mean that for a short time the ship could rotate independant of its velocity then would resume velocity alignment
         //this is a post v0.1 of the ai though

@@ -10,7 +10,7 @@ public class Fire : Action {
 
     public override void OnAwake() {
         pilot = GetComponent<Pilot>();
-        weapons = GetComponent<WeaponSystem>();
+        weapons = pilot.weaponSystem;
     }
 
     public override TaskStatus OnUpdate() {
@@ -19,10 +19,11 @@ public class Fire : Action {
         float goalDot = Vector3.Dot(toTarget.normalized, transform.forward);
 
         //todo get weapon range
-        if(toTarget.sqrMagnitude <= 2000 * 2000f && goalDot >= 0.98f) {
-            if (weapons.weaponGroups[0].Fire()) {
+        float weaponRange = pilot.ActiveWeaponRange;
+        if(toTarget.sqrMagnitude <= weaponRange * weaponRange && goalDot >= 0.98f) {
+            if(pilot.Fire()) {
                 return TaskStatus.Success;
-            }
+            }            
             else {
                 return TaskStatus.Failure;
             }

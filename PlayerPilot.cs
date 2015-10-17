@@ -1,25 +1,18 @@
 ﻿using UnityEngine;
 
-public class PlayerController : MonoBehaviour {
-
-    private EngineSystem engines;
-    private FlightControls flightControls;
-    private WeaponSystem weaponSystem;
+public class PlayerPilot : Pilot {
 
     public float yawDamp = 0.5f;
     public float pitchDamp = 1;
     public float rollDamp = 2;
     public float startThrottle = 1f;
-    public Entity target;
+
     private CameraEye cameraEye;
     private bool focused = true;
 
-    public void Start() {
-        engines = GetComponent<EngineSystem>();
-        weaponSystem = GetComponent<WeaponSystem>();
-        flightControls = new FlightControls(yawDamp, pitchDamp, rollDamp);
-        engines.SetFlightControls(flightControls);
-        flightControls.SetStickInputs(0f, 0f, 0f, startThrottle);
+    public override void Start() {
+        base.Start();
+        flightControls.SetStickDamping(yawDamp, pitchDamp, rollDamp);
         EventManager.Instance.AddListener<Event_EntityDespawned>(OnEntityDespawned);
         PlayerManager.PlayerEventManager.AddListener<Event_EntityDamaged>(OnDamageTaken);
         cameraEye = GetComponentInChildren<CameraEye>();
@@ -48,8 +41,9 @@ public class PlayerController : MonoBehaviour {
         this.focused = focused;
     }
 
-    protected void OnEntityDespawned(Event_EntityDespawned evt) {
-        if(target == evt.entity) {
+    protected override void OnEntityDespawned(Event_EntityDespawned evt) {
+        base.OnEntityDespawned(evt);
+        if (target == evt.entity) {
             EventManager.Instance.TriggerEvent(new Event_PlayerTargetChanged(null, evt.entity));
         }
     }

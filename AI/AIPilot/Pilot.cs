@@ -7,19 +7,18 @@ public class Pilot : MonoBehaviour {
     [HideInInspector]
     public Entity entity;
     [HideInInspector]
-    public AIEngineSystem engines;
+    public EngineSystem engines;
     [HideInInspector]
     public FlightControls flightControls;
     [HideInInspector]
     public new Rigidbody rigidbody;
+    [HideInInspector]
+    public WeaponSystem weaponSystem;
 
     public Transform target;
-
-    public int waypointIndex;//todo remove
-    public WaypointCircuit circuit;//todo remove
-
     public Transform location;
     public Formation formation;
+    protected WeaponGroup activeWeaponGroup;
 
     public bool FormationLeader {
         get { return formation != null && formation.Leader == this;  }
@@ -36,33 +35,56 @@ public class Pilot : MonoBehaviour {
         }
     }
 
-    public void Start() {
+    public virtual void Start() {
         entity = GetComponent<Entity>();
-        engines = GetComponentInChildren<AIEngineSystem>();
-        flightControls = new FlightControls(transform.position);
+        engines = GetComponentInChildren<EngineSystem>();
+        weaponSystem = GetComponent<WeaponSystem>();
+        flightControls = new FlightControls();
         engines.SetFlightControls(flightControls);
         rigidbody = GetComponent<Rigidbody>();
-        //todo remove this, replace it with orders / tasks
-        waypointIndex = -1;
+        EventManager.Instance.AddListener<Event_EntityDespawned>(OnEntityDespawned);
+        SelectWeapon();
     }
 
-    public float lastDistToTarget;
-    public float lastDotToTarget;
-    public float lastDotFromTarget;
-    public float lastTargetSpeed;
-    public float targetAquiredTimestamp;
-    public float lastAttackEndTimestamp;
-    public Vector3 lastAimedAtPosition;
-    public Vector3 lastAimedAtVelocity;
-    public Vector3 lastPredictedPosition;
-    public float lastDamagedTimestamp;
-    public Entity lastAttacker;
-    public float timeEnemyInRange;
-    public float timeSinceEnemyInRange;
-    public float lastAttackTimestamp;
-    public float lastSuccessfulShotTimestamp;
+    //public float lastDistToTarget;
+    //public float lastDotToTarget;
+    //public float lastDotFromTarget;
+    //public float lastTargetSpeed;
+    //public float targetAquiredTimestamp;
+    //public float lastAttackEndTimestamp;
+    //public Vector3 lastAimedAtPosition;
+    //public Vector3 lastAimedAtVelocity;
+    //public Vector3 lastPredictedPosition;
+    //public float lastDamagedTimestamp;
+    //public Entity lastAttacker;
+    //public float timeEnemyInRange;
+    //public float timeSinceEnemyInRange;
+    //public float lastAttackTimestamp;
+    //public float lastSuccessfulShotTimestamp;
 
-    public void Update() {
+    public float ActiveWeaponRange {
+        get {
+            if(activeWeaponGroup == null) {
+                return 1f; //avoid div by zero
+            }
+            else {
+                return activeWeaponGroup.Range;
+            }
+        }
+    }
+
+    public float ActiveWeaponSpeed {
+        get {
+            if(activeWeaponGroup == null) {
+                return 1f; //avoid div by zero
+            }
+            else {
+                return activeWeaponGroup.Speed;
+            }
+        }
+    }
+
+   // public void Update() {
         
         //maybe update trends 4 times a frame instead of every frame
         //maybe only when situation recognizer runs
@@ -71,6 +93,19 @@ public class Pilot : MonoBehaviour {
         //trending closer to alignment: dot to target > previous dot to target
         //trending farther from alignment: dot to target < previous dot to target
         
+   // }
+
+    public bool Fire() {
+        if(activeWeaponGroup != null) {
+            return activeWeaponGroup.Fire();
+        }
+        return false;
+    }
+
+    public void SelectWeapon() {
+        if(weaponSystem != null && weaponSystem.weaponGroups[0] != null) {
+            activeWeaponGroup = weaponSystem.weaponGroups[0];
+        }
     }
 
     public void OrientWithAvoidance(Vector3 direction, float detectionRange, float collisionHorizon) {
@@ -97,8 +132,8 @@ public class Pilot : MonoBehaviour {
     }
 
     public void FindNextWaypoint() {
-        waypointIndex = (waypointIndex + 1) % circuit.Waypoints.Length;
-        flightControls.destination = circuit.Waypoints[waypointIndex].position;
+      //  waypointIndex = (waypointIndex + 1) % circuit.Waypoints.Length;
+      //  flightControls.destination = circuit.Waypoints[waypointIndex].position;
     }
 
     //todo this can be cached / debounced to a few times a second instead of every frame. this would mean PotentialCollisions would need to be cached / updated
@@ -156,6 +191,12 @@ public class Pilot : MonoBehaviour {
 
         }
         return possibleCollisions;
+    }
+
+    protected virtual void OnEntityDespawned(Event_EntityDespawned evt) {
+        if(target == evt.entity) {
+            target = null;
+        }
     }
 
     public Vector3 AdjustDirectionForAvoidance(Vector3 direction, float detectionRange, float collisionHorizon) {

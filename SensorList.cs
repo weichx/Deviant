@@ -10,23 +10,35 @@ public class SensorList : MonoBehaviour {
 
     public GameObject listItem;
     protected List<SensorListItem> sensorListItems;
-    protected int sensorListStart = 0;
-    protected int sensorListEnd = 0;
     public int sensorListMax = 8;
     protected Entity playerTarget;
     protected Text contactText;
+    protected Queue<GameObject> inactiveItems;
 
     public void Start() {
+        inactiveItems = new Queue<GameObject>();
         sensorListItems = new List<SensorListItem>();
         contactText = transform.parent.Find("Contact Text").GetComponent<Text>();
         List<Entity> entityList = EntityManager.entities;
         linkedEntityList = new LinkedList<Entity>();
-        for (int i = 0; i < entityList.Count; i++) {
-            AddItemToList(entityList[i]);
-        }
+
         EventManager.Instance.AddListener<Event_EntitySpawned>(OnEntitySpawned);
         EventManager.Instance.AddListener<Event_EntityDespawned>(OnEntityDespawned);
         EventManager.Instance.AddListener<Event_PlayerTargetChanged>(OnPlayerTargetChanged);
+
+        for(var i = 0; i < sensorListMax; i++) {
+            GameObject itemGameObject = Instantiate(listItem) as GameObject;
+            SensorListItem item = itemGameObject.GetComponent<SensorListItem>();
+            itemGameObject.transform.SetParent(transform, false);
+            itemGameObject.transform.localScale = Vector3.one;
+            itemGameObject.transform.rotation = Quaternion.identity;
+            itemGameObject.SetActive(false);
+            inactiveItems.Enqueue(itemGameObject);
+        }
+
+        for (int i = 0; i < entityList.Count; i++) {
+            AddItemToList(entityList[i]);
+        }
     }
 
     protected void AddItemToList(Entity entity) {
@@ -34,13 +46,10 @@ public class SensorList : MonoBehaviour {
         linkedEntityList.AddLast(entity);
         contactText.text = "Contacts (" + linkedEntityList.Count + ")";
         if(sensorListItems.Count < sensorListMax) {
-            sensorListEnd++;
-            GameObject itemGameObject = Instantiate(listItem) as GameObject;
+            GameObject itemGameObject = inactiveItems.Dequeue();
             SensorListItem item = itemGameObject.GetComponent<SensorListItem>();
+            itemGameObject.SetActive(true);
             item.SetEntity(entity);
-            itemGameObject.transform.SetParent(transform, false);
-            itemGameObject.transform.localScale = Vector3.one;
-            itemGameObject.transform.rotation = Quaternion.identity;
             sensorListItems.Add(item);
         }
     }
@@ -52,6 +61,19 @@ public class SensorList : MonoBehaviour {
     public void OnEntityDespawned(Event_EntityDespawned evt) {
         linkedEntityList.Remove(evt.entity);
         contactText.text = "Contacts (" + linkedEntityList.Count + ")";
+        if(linkedEntityList.Count < sensorListItems.Count) {
+            var item = sensorListItems[sensorListItems.Count - 1];
+            sensorListItems.Remove(item);
+            inactiveItems.Enqueue(item.gameObject);
+            SensorListItem selected = GetItemForEntity(playerTarget);
+            if (selected) selected.Deselect();
+            var node = linkedEntityList.First;
+            for(int i = 0; i < sensorListItems.Count; i++) {
+                sensorListItems[i].SetEntity(node.Value, node.Value == playerTarget);
+                node = node.Next;
+            }
+            item.gameObject.SetActive(false);
+        }
     }
 
     public void OnPlayerTargetChanged(Event_PlayerTargetChanged evt) {
@@ -89,7 +111,12 @@ public class SensorList : MonoBehaviour {
             ShiftUp();
         }
         else {
-            Debug.LogError("Dont know how to handle targeting");
+            sensorListItems[0].SetEntity(playerTarget, true);
+            var node = linkedEntityList.Find(playerTarget);
+            for (var i = 1; i < sensorListItems.Count; i++) {
+                node = node.NextOrFirst();
+                sensorListItems[i].SetEntity(node.Value);
+            }
         }
 
     }
